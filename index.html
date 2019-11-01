@@ -37,7 +37,7 @@ function main() {
 
     var anim = null;
     function moveTo(nX, nY) {
-        if (nX < 1 || nX > 16 || nY < 0 || nY > 7) return;
+        if (nX < 0 || nX > 15 || nY < 0 || nY > 7) return;
         anim = {
             "origX": x,
             "origY": y,
