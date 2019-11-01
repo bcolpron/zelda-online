@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas" width="512" height="352" style="border:3px solid #000000;"> </canvas>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(event) { 
+    main();
+});
+
+function main() {
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    var img = new Image();
+    img.onload = ()=> {
+        requestAnimationFrame(draw);
+    }
+    img.src = location.href + "images/map.png";
+
+    const AREA_PAN_TIME = 500;
+
+    var x = 8;
+    var y = 7;
+    var resetScreen = true;
+    function draw() {
+        var offsetX = 256*x;
+        var offsetY = 176*y;
+        if (anim) {
+            var slice = performance.now() - anim.start;
+            offsetX += Math.floor(256*(anim.destX - anim.origX)*slice/AREA_PAN_TIME);
+            offsetY += Math.floor(176*(anim.destY - anim.origY)*slice/AREA_PAN_TIME);
+        }
+        ctx.drawImage(img, offsetX, offsetY, 256, 176, 0, 0, 512, 352);
+        requestAnimationFrame(draw);
+    }
+
+    var anim = null;
+    function moveTo(nX, nY) {
+        if (nX < 1 || nX > 16 || nY < 0 || nY > 7) return;
+        anim = {
+            "origX": x,
+            "origY": y,
+            "destX": nX,
+            "destY": nY,
+            "start": performance.now()
+        };
+        setTimeout(()=>{
+            x = anim.destX;
+            y = anim.destY;
+            anim = null;
+            }, AREA_PAN_TIME);
+    }
+
+    document.onkeydown = (e) => {
+        if (anim) return;
+        switch(e.keyCode) {
+            case 37:
+                moveTo(x-1, y);
+                break;
+            case 38:
+                moveTo(x, y-1);
+                break;
+            case 39:
+                moveTo(x+1, y);
+                break;
+            case 40:
+                moveTo(x, y+1);
+                break;
+        }
+    }
+}
+
+</script>
+</body>
+</html>
