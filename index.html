@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html>
+<style>
+body {
+    background-color: black;
+    text-align: center;
+    margin: 40px;
+}
+</style>
 <body>
 
-<canvas id="myCanvas" width="512" height="352" style="border:3px solid #000000;"> </canvas>
+<canvas id="myCanvas" width="512" height="352"> </canvas>
 
 <script>
 document.addEventListener("DOMContentLoaded", function(event) { 
@@ -12,32 +19,45 @@ document.addEventListener("DOMContentLoaded", function(event) {
 function main() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
-    var img = new Image();
-    img.onload = ()=> {
+    var map = new Image();
+    map.onload = ()=> {
         requestAnimationFrame(draw);
     }
-    img.src = location.href + "images/map.png";
+    map.src = location.href + "images/map.png";
+    var sprites = new Image();
+    sprites.src = location.href + "images/sprites.png";
 
-    const AREA_PAN_TIME = 500;
+    const SPRITE_SIZE = 16;
+    const TILE_SIZE = 16;
+    const AREA_WIDTH_TILES = 16;
+    const AREA_WIDTH = AREA_WIDTH_TILES * TILE_SIZE;
+    const AREA_HEIGHT_TILES = 11;
+    const AREA_HEIGHT = AREA_HEIGHT_TILES * TILE_SIZE;
+    const AREA_PAN_TIME = 1;
+    const ZOOM = 2;
 
-    var x = 8;
-    var y = 7;
-    var resetScreen = true;
+    var x = 7*AREA_WIDTH + 5*TILE_SIZE;
+    var y = 7*AREA_HEIGHT + 5*TILE_SIZE;
+
     function draw() {
-        var offsetX = 256*x;
-        var offsetY = 176*y;
+        var mapOffsetX = Math.floor(x/AREA_WIDTH);
+        var relativeX = x % AREA_WIDTH;
+        var mapOffsetY = Math.floor(y/AREA_HEIGHT);
+        var relativeY = y % AREA_HEIGHT;
+
         if (anim) {
             var slice = performance.now() - anim.start;
-            offsetX += Math.floor(256*(anim.destX - anim.origX)*slice/AREA_PAN_TIME);
-            offsetY += Math.floor(176*(anim.destY - anim.origY)*slice/AREA_PAN_TIME);
+            //offsetX += Math.floor(AREA_WIDTH*(anim.destX - anim.origX)*slice/AREA_PAN_TIME);
+            //offsetY += Math.floor(AREA_HEIGHT*(anim.destY - anim.origY)*slice/AREA_PAN_TIME);
         }
-        ctx.drawImage(img, offsetX, offsetY, 256, 176, 0, 0, 512, 352);
+        ctx.drawImage(map, mapOffsetX*AREA_WIDTH, mapOffsetY*AREA_HEIGHT, AREA_WIDTH, AREA_HEIGHT, 0, 0, ZOOM*AREA_WIDTH, ZOOM*AREA_HEIGHT);
+        ctx.drawImage(sprites, 0, 0, SPRITE_SIZE, SPRITE_SIZE, ZOOM*relativeX, ZOOM*relativeY, ZOOM*SPRITE_SIZE, ZOOM*SPRITE_SIZE);
         requestAnimationFrame(draw);
     }
 
     var anim = null;
     function moveTo(nX, nY) {
-        if (nX < 0 || nX > 15 || nY < 0 || nY > 7) return;
+        if (nX < 0 || nX >= 16*AREA_WIDTH || nY < 0 || nY >= 8*AREA_HEIGHT) return;
         anim = {
             "origX": x,
             "origY": y,
@@ -45,30 +65,59 @@ function main() {
             "destY": nY,
             "start": performance.now()
         };
-        setTimeout(()=>{
+        //setTimeout(()=>{
             x = anim.destX;
             y = anim.destY;
-            anim = null;
-            }, AREA_PAN_TIME);
+        //    anim = null;
+        //    }, AREA_PAN_TIME);
     }
 
+    class UserControl {
+        constructor() {
+            this.up = this.down = this.left = this.right = false;
+        }
+    };
+    var control = new UserControl();
+
     document.onkeydown = (e) => {
-        if (anim) return;
         switch(e.keyCode) {
             case 37:
-                moveTo(x-1, y);
+                control.left = true;
                 break;
             case 38:
-                moveTo(x, y-1);
+                control.up = true;
                 break;
             case 39:
-                moveTo(x+1, y);
+                control.right = true;
                 break;
             case 40:
-                moveTo(x, y+1);
+                control.down = true;
                 break;
         }
     }
+    document.onkeyup = (e) => {
+        switch(e.keyCode) {
+            case 37:
+                control.left = false;
+                break;
+            case 38:
+                control.up = false;
+                break;
+            case 39:
+                control.right = false;
+                break;
+            case 40:
+                control.down = false;
+                break;
+        }
+    }
+
+    setInterval(() => {
+        if (control.up) {moveTo(x, y-1);}
+        if (control.down) {moveTo(x, y+1);}
+        if (control.left) {moveTo(x-1, y);}
+        if (control.right) {moveTo(x+1, y);}
+    }, 12);
 }
 
 </script>
