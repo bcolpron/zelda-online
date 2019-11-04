@@ -16,6 +16,34 @@ document.addEventListener("DOMContentLoaded", function(event) {
     main();
 });
 
+const SPRITE_SIZE = 16;
+const TILE_SIZE = 16;
+const AREA_WIDTH_TILES = 16;
+const AREA_WIDTH = AREA_WIDTH_TILES * TILE_SIZE;
+const AREA_HEIGHT_TILES = 11;
+const AREA_HEIGHT = AREA_HEIGHT_TILES * TILE_SIZE;
+const AREA_PAN_TIME = 1;
+const ZOOM = 2;
+
+const NONE=0, UP=1, DOWN=2, LEFT=3, RIGHT=4;
+
+class Sprite {
+    constructor(path) {
+        this.sprites = new Image();
+        this.sprites.src = location.href + path;
+        this.direction = DOWN;
+    }
+
+    setDirection(dir) {
+        this.direction = dir;
+    }
+
+    draw(ctx, x, y) {
+        var offset = this.direction == DOWN ? 0 : this.direction == LEFT ? 1 : this.direction == UP  ? 2 : 3;
+        ctx.drawImage(this.sprites, (14+16)*offset, 14+16, SPRITE_SIZE, SPRITE_SIZE, ZOOM*x, ZOOM*y, ZOOM*SPRITE_SIZE, ZOOM*SPRITE_SIZE);
+    }
+};
+
 function main() {
     var canvas = document.getElementById("myCanvas");
     var ctx = canvas.getContext("2d");
@@ -24,17 +52,7 @@ function main() {
         requestAnimationFrame(draw);
     }
     map.src = location.href + "images/map.png";
-    var sprites = new Image();
-    sprites.src = location.href + "images/sprites.png";
-
-    const SPRITE_SIZE = 16;
-    const TILE_SIZE = 16;
-    const AREA_WIDTH_TILES = 16;
-    const AREA_WIDTH = AREA_WIDTH_TILES * TILE_SIZE;
-    const AREA_HEIGHT_TILES = 11;
-    const AREA_HEIGHT = AREA_HEIGHT_TILES * TILE_SIZE;
-    const AREA_PAN_TIME = 1;
-    const ZOOM = 2;
+    var link = new Sprite("images/sprites.png")
 
     var x = 7*AREA_WIDTH + 5*TILE_SIZE;
     var y = 7*AREA_HEIGHT + 5*TILE_SIZE;
@@ -51,7 +69,7 @@ function main() {
             //offsetY += Math.floor(AREA_HEIGHT*(anim.destY - anim.origY)*slice/AREA_PAN_TIME);
         }
         ctx.drawImage(map, mapOffsetX*AREA_WIDTH, mapOffsetY*AREA_HEIGHT, AREA_WIDTH, AREA_HEIGHT, 0, 0, ZOOM*AREA_WIDTH, ZOOM*AREA_HEIGHT);
-        ctx.drawImage(sprites, 0, 0, SPRITE_SIZE, SPRITE_SIZE, ZOOM*relativeX, ZOOM*relativeY, ZOOM*SPRITE_SIZE, ZOOM*SPRITE_SIZE);
+        link.draw(ctx, relativeX, relativeY);
         requestAnimationFrame(draw);
     }
 
@@ -75,6 +93,7 @@ function main() {
     class UserControl {
         constructor() {
             this.up = this.down = this.left = this.right = false;
+            this.direction = NONE;
         }
     };
     var control = new UserControl();
@@ -83,40 +102,57 @@ function main() {
         switch(e.keyCode) {
             case 37:
                 control.left = true;
+                control.direction = LEFT;
                 break;
             case 38:
                 control.up = true;
+                control.direction = UP;
                 break;
             case 39:
                 control.right = true;
+                control.direction = RIGHT;
                 break;
             case 40:
                 control.down = true;
+                control.direction = DOWN;
                 break;
         }
+        link.setDirection(control.direction);
     }
     document.onkeyup = (e) => {
         switch(e.keyCode) {
             case 37:
                 control.left = false;
+                if (control.direction == LEFT) control.direction = NONE;
                 break;
             case 38:
                 control.up = false;
+                if (control.direction == UP) control.direction = NONE;
                 break;
             case 39:
                 control.right = false;
+                if (control.direction == RIGHT) control.direction = NONE;
                 break;
             case 40:
                 control.down = false;
+                if (control.direction == DOWN) control.direction = NONE;
                 break;
+        }
+        if (control.left) control.direction = LEFT;
+        else if (control.up) control.direction = UP;
+        else if (control.right) control.direction = RIGHT;
+        else if (control.DOWN) control.direction = DOWN;
+
+        if (control.direction != NONE) {
+            link.setDirection(control.direction);
         }
     }
 
     setInterval(() => {
-        if (control.up) {moveTo(x, y-1);}
-        if (control.down) {moveTo(x, y+1);}
-        if (control.left) {moveTo(x-1, y);}
-        if (control.right) {moveTo(x+1, y);}
+        if (control.direction == UP) {moveTo(0, -1);}
+        if (control.direction == DOWN) {moveTo(0, 1);}
+        if (control.direction == LEFT) {moveTo(-1, 0);}
+        if (control.direction == RIGHT) {moveTo(1, 0);}
     }, 12);
 }
 
