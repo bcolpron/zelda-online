@@ -79,20 +79,31 @@ function main() {
         var nY = y + dY;
         if (nX < 0 || nX >= 16*AREA_WIDTH-TILE_SIZE || nY < 0 || nY >= 8*AREA_HEIGHT-TILE_SIZE) return;
 
+        var logicalX = Math.floor(nX / TILE_SIZE) + (dX==1 ? 1 : 0);
+        var logicalY = Math.floor(nY / TILE_SIZE) + (dY==1 ? 1 : 0);
+
         if (dX) {
-            var mod = nY%8;
-            if (mod > 4) {
-                nY += 1;
-            } else if (mod) {
-                nY -= 1;
+            if (topology[logicalY*256+logicalX] == 1) {
+                nX = x
+            } else {
+                var mod = nY%8;
+                if (mod > 4) {
+                    nY += 1;
+                } else if (mod) {
+                    nY -= 1;
+                }
             }
         }
         if (dY) {
-            var mod = nX%8;
-            if (mod > 4) {
-                nX += 1;
-            } else if (mod) {
-                nX -= 1;
+            if (topology[logicalY*256+logicalX] == 1) {
+                nY = y
+            } else {
+                var mod = nX%8;
+                if (mod > 4) {
+                    nX += 1;
+                } else if (mod) {
+                    nX -= 1;
+                }
             }
         }
 
@@ -137,7 +148,9 @@ function main() {
                 control.direction = DOWN;
                 break;
         }
-        link.setDirection(control.direction);
+        if (control.direction != NONE) {
+            link.setDirection(control.direction);
+        }
     }
     document.onkeyup = (e) => {
         switch(e.keyCode) {
@@ -161,7 +174,7 @@ function main() {
         if (control.left) control.direction = LEFT;
         else if (control.up) control.direction = UP;
         else if (control.right) control.direction = RIGHT;
-        else if (control.DOWN) control.direction = DOWN;
+        else if (control.down) control.direction = DOWN;
 
         if (control.direction != NONE) {
             link.setDirection(control.direction);
@@ -177,5 +190,6 @@ function main() {
 }
 
 </script>
+<script src="js/data.js"></script>
 </body>
 </html>
