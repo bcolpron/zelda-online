@@ -105,27 +105,25 @@ function main() {
         var logicalY = Math.floor(nY / TILE_SIZE) + (dY==1 ? 1 : 0);
 
         if (dX) {
+            var mod = nY%8;
+            if (mod > 4) {
+                nY += 1;
+            } else if (mod) {
+                nY -= 1;
+            }
             if (topology[logicalY*256+logicalX] == 1) {
                 nX = link.x
-            } else {
-                var mod = nY%8;
-                if (mod > 4) {
-                    nY += 1;
-                } else if (mod) {
-                    nY -= 1;
-                }
             }
         }
         if (dY) {
+            var mod = nX%8;
+            if (mod > 4) {
+                nX += 1;
+            } else if (mod) {
+                nX -= 1;
+            }
             if (topology[logicalY*256+logicalX] == 1) {
                 nY = link.y
-            } else {
-                var mod = nX%8;
-                if (mod > 4) {
-                    nX += 1;
-                } else if (mod) {
-                    nX -= 1;
-                }
             }
         }
 
