@@ -28,19 +28,38 @@ const ZOOM = 2;
 const NONE=0, UP=1, DOWN=2, LEFT=3, RIGHT=4;
 
 class Sprite {
-    constructor(path) {
+    constructor(path, x, y) {
         this.sprites = new Image();
         this.sprites.src = location.href + path;
+        this.x = x;
+        this.y = y;
         this.direction = DOWN;
+        this.animFrame = 0
+        this.moveTicks = 0;
     }
 
     setDirection(dir) {
         this.direction = dir;
     }
 
+    moveTo(x,y) {
+        if (this.x != x || this.y != y) {
+            this.x = x;
+            this.y = y;
+            this.animate();
+        }
+    }
+
+    animate() {
+        if (this.moveTicks++ > 20) {
+            this.animFrame = (this.animFrame+1)%2;
+            this.moveTicks = 0;
+        }
+    }
+
     draw(ctx, x, y) {
         var offset = this.direction == DOWN ? 0 : this.direction == LEFT ? 1 : this.direction == UP  ? 2 : 3;
-        ctx.drawImage(this.sprites, (14+16)*offset, 14+16, SPRITE_SIZE, SPRITE_SIZE, ZOOM*x, ZOOM*y, ZOOM*SPRITE_SIZE, ZOOM*SPRITE_SIZE);
+        ctx.drawImage(this.sprites, (14+16)*offset, this.animFrame?14+16:0, SPRITE_SIZE, SPRITE_SIZE, ZOOM*x, ZOOM*y, ZOOM*SPRITE_SIZE, ZOOM*SPRITE_SIZE);
     }
 };
 
@@ -52,31 +71,22 @@ function main() {
         requestAnimationFrame(draw);
     }
     map.src = location.href + "images/map.png";
-    var link = new Sprite("images/sprites.png")
-
-    var x = 7*AREA_WIDTH + 5*TILE_SIZE;
-    var y = 7*AREA_HEIGHT + 5*TILE_SIZE;
+    var link = new Sprite("images/sprites.png", 7*AREA_WIDTH+5*TILE_SIZE, 7*AREA_HEIGHT+5*TILE_SIZE)
 
     function draw() {
-        var mapOffsetX = Math.floor(x/AREA_WIDTH);
-        var relativeX = x % AREA_WIDTH;
-        var mapOffsetY = Math.floor(y/AREA_HEIGHT);
-        var relativeY = y % AREA_HEIGHT;
+        var mapOffsetX = Math.floor(link.x/AREA_WIDTH);
+        var relativeX = link.x % AREA_WIDTH;
+        var mapOffsetY = Math.floor(link.y/AREA_HEIGHT);
+        var relativeY = link.y % AREA_HEIGHT;
 
-        if (anim) {
-            var slice = performance.now() - anim.start;
-            //offsetX += Math.floor(AREA_WIDTH*(anim.destX - anim.origX)*slice/AREA_PAN_TIME);
-            //offsetY += Math.floor(AREA_HEIGHT*(anim.destY - anim.origY)*slice/AREA_PAN_TIME);
-        }
         ctx.drawImage(map, mapOffsetX*AREA_WIDTH, mapOffsetY*AREA_HEIGHT, AREA_WIDTH, AREA_HEIGHT, 0, 0, ZOOM*AREA_WIDTH, ZOOM*AREA_HEIGHT);
         link.draw(ctx, relativeX, relativeY);
         requestAnimationFrame(draw);
     }
 
-    var anim = null;
     function moveTo(dX, dY) {
-        var nX = x + dX;
-        var nY = y + dY;
+        var nX = link.x + dX;
+        var nY = link.y + dY;
         if (nX < 0 || nX >= 16*AREA_WIDTH-TILE_SIZE || nY < 0 || nY >= 8*AREA_HEIGHT-TILE_SIZE) return;
 
         var logicalX = Math.floor(nX / TILE_SIZE) + (dX==1 ? 1 : 0);
@@ -84,7 +94,7 @@ function main() {
 
         if (dX) {
             if (topology[logicalY*256+logicalX] == 1) {
-                nX = x
+                nX = link.x
             } else {
                 var mod = nY%8;
                 if (mod > 4) {
@@ -96,7 +106,7 @@ function main() {
         }
         if (dY) {
             if (topology[logicalY*256+logicalX] == 1) {
-                nY = y
+                nY = link.y
             } else {
                 var mod = nX%8;
                 if (mod > 4) {
@@ -107,18 +117,9 @@ function main() {
             }
         }
 
-        anim = {
-            "origX": x,
-            "origY": y,
-            "destX": nX,
-            "destY": nY,
-            "start": performance.now()
-        };
-        //setTimeout(()=>{
-            x = anim.destX;
-            y = anim.destY;
-        //    anim = null;
-        //    }, AREA_PAN_TIME);
+        x = nX;
+        y = nY;
+        link.moveTo(nX,nY);
     }
 
     class UserControl {
@@ -183,9 +184,9 @@ function main() {
 
     setInterval(() => {
         if (control.direction == UP) {moveTo(0, -1);}
-        if (control.direction == DOWN) {moveTo(0, 1);}
-        if (control.direction == LEFT) {moveTo(-1, 0);}
-        if (control.direction == RIGHT) {moveTo(1, 0);}
+        else if (control.direction == DOWN) {moveTo(0, 1);}
+        else if (control.direction == LEFT) {moveTo(-1, 0);}
+        else if (control.direction == RIGHT) {moveTo(1, 0);}
     }, 12);
 }
 
