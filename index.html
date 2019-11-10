@@ -102,7 +102,9 @@ function main() {
         if (nX < 0 || nX >= 16*AREA_WIDTH-TILE_SIZE || nY < 0 || nY >= 8*AREA_HEIGHT-TILE_SIZE) return;
 
         var logicalX = Math.floor(nX / TILE_SIZE) + (dX==1 ? 1 : 0);
+        var logicalX2 = Math.ceil(nX / TILE_SIZE) + (dX==-1 ? -1 : 0);
         var logicalY = Math.floor(nY / TILE_SIZE) + (dY==1 ? 1 : 0);
+        var logicalY2 = Math.ceil(nY / TILE_SIZE) + (dY==-1 ? -1 : 0);
 
         if (dX) {
             var mod = nY%8;
@@ -111,7 +113,7 @@ function main() {
             } else if (mod) {
                 nY -= 1;
             }
-            if (topology[logicalY*256+logicalX] == 1) {
+            if (topology[logicalY*256+logicalX] == 1|| topology[logicalY2*256+logicalX2] == 1) {
                 nX = link.x
             }
         }
@@ -122,7 +124,7 @@ function main() {
             } else if (mod) {
                 nX -= 1;
             }
-            if (topology[logicalY*256+logicalX] == 1) {
+            if (topology[logicalY*256+logicalX] ==1 || topology[logicalY2*256+logicalX2] == 1) {
                 nY = link.y
             }
         }
