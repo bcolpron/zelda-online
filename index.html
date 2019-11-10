@@ -24,15 +24,35 @@ const AREA_HEIGHT_TILES = 11;
 const AREA_HEIGHT = AREA_HEIGHT_TILES * TILE_SIZE;
 const AREA_PAN_TIME = 1;
 const ZOOM = 2;
-
 const NONE=0, UP=1, DOWN=2, LEFT=3, RIGHT=4;
 
-class Sprite {
-    constructor(path, x, y) {
-        this.sprites = new Image();
-        this.sprites.src = location.href + path;
+class Character {
+    constructor(sprite, x, y) {
+        this.sprite = sprite;
         this.x = x;
         this.y = y;
+        this.direction = DOWN;
+    }
+
+    setDirection(dir) {
+        this.direction = dir;
+        this.sprite.setDirection(dir);
+    }
+
+    moveTo(x,y) {
+        if (this.x != x || this.y != y) {
+            this.x = x;
+            this.y = y;
+            this.sprite.animate();
+        }
+    }
+
+};
+
+class Sprite {
+    constructor(path) {
+        this.sprites = new Image();
+        this.sprites.src = location.href + path;
         this.direction = DOWN;
         this.animFrame = 0
         this.moveTicks = 0;
@@ -40,14 +60,6 @@ class Sprite {
 
     setDirection(dir) {
         this.direction = dir;
-    }
-
-    moveTo(x,y) {
-        if (this.x != x || this.y != y) {
-            this.x = x;
-            this.y = y;
-            this.animate();
-        }
     }
 
     animate() {
@@ -71,7 +83,7 @@ function main() {
         requestAnimationFrame(draw);
     }
     map.src = location.href + "images/map.png";
-    var link = new Sprite("images/sprites.png", 7*AREA_WIDTH+5*TILE_SIZE, 7*AREA_HEIGHT+5*TILE_SIZE)
+    var link = new Character(new Sprite("images/sprites.png"), 7*AREA_WIDTH+5*TILE_SIZE, 7*AREA_HEIGHT+5*TILE_SIZE)
 
     function draw() {
         var mapOffsetX = Math.floor(link.x/AREA_WIDTH);
@@ -80,7 +92,7 @@ function main() {
         var relativeY = link.y % AREA_HEIGHT;
 
         ctx.drawImage(map, mapOffsetX*AREA_WIDTH, mapOffsetY*AREA_HEIGHT, AREA_WIDTH, AREA_HEIGHT, 0, 0, ZOOM*AREA_WIDTH, ZOOM*AREA_HEIGHT);
-        link.draw(ctx, relativeX, relativeY);
+        link.sprite.draw(ctx, relativeX, relativeY);
         requestAnimationFrame(draw);
     }
 
